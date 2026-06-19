@@ -1,0 +1,18 @@
+[package]
+name = "nixpkgs-context"
+version = "0.1.0"
+edition = "2024"
+description = "Find nix code examples in context for a given string"
+license = "MIT"
+repository = "https://github.com/n8henrie/nixpkgs-context"
+authors = ["Nathan Henrie <nate@n8henrie.com>"]
+
+[dependencies]
+clap = { version = "4.6.1", features = ["derive"] }
+rayon = "1"
+thiserror = "2"
+tree-sitter = "0.26"
+tree-sitter-nix = "0.3"
+
+[lints.clippy]
+pedantic = "warn"
