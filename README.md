@@ -1,7 +1,6 @@
 # nixpkgs-context
 
-master: [![master branch build status](https://github.com/n8henrie/nixpkgs-context/actions/workflows/ci.yml/badge.s
-vg?branch=master)](https://github.com/n8henrie/nixpkgs-context/actions/workflows/ci.yml)
+master: [![master branch build status](https://github.com/n8henrie/nixpkgs-context/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/n8henrie/nixpkgs-context/actions/workflows/ci.yml)
 
 ```console
 $ target/release/nixpkgs-context --help
