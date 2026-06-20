@@ -37,7 +37,7 @@ impl Context {
     ) -> Option<Self> {
         let source_code = source_code.as_ref();
         let needle = needle.as_ref();
-        let needle_length = needle.chars().count();
+        let needle_length = needle.len();
         let node = tree
             .root_node()
             .descendant_for_byte_range(idx, idx + needle_length)?;
@@ -151,7 +151,7 @@ mod tests {
 
         let needle = "bar";
         let start = source.find(needle).unwrap();
-        let end = start + needle.chars().count();
+        let end = start + needle.len();
         let node = tree
             .root_node()
             .descendant_for_byte_range(start, end)
@@ -179,7 +179,7 @@ mod tests {
         let needle = "fakePkg";
         // rfind so we can skip the callPackage args
         let start = source.rfind(needle).unwrap();
-        let end = start + needle.chars().count();
+        let end = start + needle.len();
         let node = find_binding(
             tree.root_node()
                 .descendant_for_byte_range(start, end)
