@@ -41,6 +41,10 @@ impl Context {
         let node = tree
             .root_node()
             .descendant_for_byte_range(idx, idx + needle_length)?;
+        // Reject partial matches
+        if node.byte_range() != (idx..idx + needle.len()) {
+            return None;
+        }
         let binding = find_binding(node)?;
         let code = node_text(source_code, binding).to_string();
         let name = if let Some(attrpath) = binding.child_by_field_name("attrpath") {
