@@ -174,6 +174,32 @@ mod tests {
     }
 
     #[test]
+    fn find_binding_skips_callpackage_args() {
+        let source = "{lib, stdenv, fakePkg}: stdenv.mkDerivation { buildInputs = [ fakePkg ]; }";
+        let tree = parser().parse(source, None).unwrap();
+
+        let needle = "fakePkg";
+
+        let bindings: Vec<_> = source
+            .match_indices(needle)
+            .map(|(idx, _)| {
+                let end = idx + needle.len();
+                let node = tree
+                    .root_node()
+                    .descendant_for_byte_range(idx, end)
+                    .unwrap();
+                find_binding(node)
+            })
+            .collect();
+        assert!(&bindings[0].is_none());
+        assert!(&bindings[1].is_some());
+        assert_eq!(
+            source.find("buildInputs").unwrap(),
+            bindings[1].unwrap().start_byte()
+        );
+    }
+
+    #[test]
     fn test_node_text() {
         let source = "{lib, stdenv, fakePkg}: stdenv.mkDerivation { buildInputs = [ fakePkg ]; }";
         let tree = parser().parse(source, None).unwrap();
