@@ -37,14 +37,37 @@ $
 $ target/release/nixpkgs-context pkg-config
 nativeBuildInputs (1)
 $
-$ target/release/nixpkgs-context pkg-config -e 2
-nativeBuildInputs (1)
+$ target/release/nixpkgs-context pkg-config -e 2 ~/git/nixpkgs | head -30
+nativeBuildInputs (6865)
 === EXAMPLES ===
-./tests/files/garage/default.nix:
+/Users/n8henrie/git/nixpkgs/pkgs/servers/sql/mysql/8.0.x.nix:
     nativeBuildInputs = [
-        protobuf
-        pkg-config
-      ];
+    bison
+    cmake
+    pkg-config
+    protobuf
+  ]
+  ++ lib.optionals (!stdenv.hostPlatform.isDarwin) [ rpcsvc-proto ];
+/Users/n8henrie/git/nixpkgs/pkgs/servers/sql/percona-server/8_0.nix:
+    nativeBuildInputs = [
+    bison
+    cmake
+    pkg-config
+    makeWrapper
+    # required for scripts/CMakeLists.txt
+    coreutils
+    gnugrep
+    procps
+  ]
+  ++ lib.optionals (!stdenv.hostPlatform.isDarwin) [ rpcsvc-proto ];
+
+depsBuildBuild (177)
+=== EXAMPLES ===
+/Users/n8henrie/git/nixpkgs/pkgs/os-specific/linux/kernel/generic.nix:
+    depsBuildBuild =
+              previousAttrs.depsBuildBuild or [ ]
+              ++ (with pkgsBuildBuild; [
+                pkg-config
 $
 ```
 
