@@ -27,6 +27,18 @@ pub(crate) struct Context {
     pub(crate) code: String,
 }
 
+fn node_for_needle_at_idx(tree: &Tree, idx: usize, needle: impl AsRef<str>) -> Option<Node<'_>> {
+    let needle_length = needle.as_ref().len();
+    let node = tree
+        .root_node()
+        .descendant_for_byte_range(idx, idx + needle_length)?;
+    // Reject partial matches
+    if node.byte_range() != (idx..idx + needle_length) {
+        return None;
+    }
+    Some(node)
+}
+
 impl Context {
     fn try_from_source(
         tree: &Tree,
@@ -36,15 +48,7 @@ impl Context {
         entry: impl AsRef<Path> + Clone,
     ) -> Option<Self> {
         let source_code = source_code.as_ref();
-        let needle = needle.as_ref();
-        let needle_length = needle.len();
-        let node = tree
-            .root_node()
-            .descendant_for_byte_range(idx, idx + needle_length)?;
-        // Reject partial matches
-        if node.byte_range() != (idx..idx + needle.len()) {
-            return None;
-        }
+        let node = node_for_needle_at_idx(tree, idx, needle)?;
         let binding = find_binding(node)?;
         let code = node_text(source_code, binding).to_string();
         let name = if let Some(attrpath) = binding.child_by_field_name("attrpath") {
@@ -85,7 +89,8 @@ impl ContextVec {
         }
         let Some(tree) = parser.parse(source_code, None) else {
             return Err(Error::Parse(entry.as_ref().to_path_buf()));
-        };
+        }
+
         let mut vec = Vec::with_capacity(indices.len());
         for idx in indices {
             if let Some(ctx) = Context::try_from_source(&tree, source_code, idx, needle, &entry) {
@@ -218,5 +223,17 @@ mod tests {
         .unwrap();
         let text = node_text(source, node);
         assert_eq!(text, "buildInputs = [ fakePkg ];");
+    }
+
+    #[test]
+    fn test_no_partial_matches() {
+        let source = "{ stdenv, somePkg }: stdenv.mkDerivation { buildInputs = [ somePkg ]; }";
+        let tree = parser().parse(source, None).unwrap();
+        let needle = "somePkg";
+        let node = node_for_needle_at_idx(&tree, source.find(needle).unwrap(), needle);
+        assert!(node.is_some());
+        let needle = "somePk";
+        let node = node_for_needle_at_idx(&tree, source.find(needle).unwrap(), needle);
+        assert!(node.is_none());
     }
 }
