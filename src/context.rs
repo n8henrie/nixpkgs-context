@@ -251,4 +251,16 @@ mod tests {
         let node = node_for_needle_at_idx(&tree, source.find(needle).unwrap(), needle);
         assert!(node.is_none());
     }
+
+    // this ensures we aren't matching inside of comments; instead of explicitly
+    // testing for `node.kind()`, the partial match checking currently handles
+    // this for us, because the comment node's `byte_range` includes the entire
+    // comment (including the leading `#`), meaning `somePkg` will never match
+    #[test]
+    fn test_skips_comments() {
+        let source = "{ stdenv, otherPkg }: stdenv.mkDerivation { buildInputs = [ otherPkg ]; } # somePkg in a trailing comment";
+        let result =
+            ContextVec::try_from_source(source, &mut parser(), "somePkg", "/fake/path").unwrap();
+        assert_eq!(result.len(), 0);
+    }
 }
