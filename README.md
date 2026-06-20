@@ -52,7 +52,7 @@ $
 
 On my M4 Max, searching a full `nixpkgs` checkout for `patchShebangs`:
 
-```
+```console
 $ hyperfine --runs 100 'target/release/nixpkgs-context patchShebangs ~/git/nixpkgs'
 Benchmark 1: target/release/nixpkgs-context patchShebangs ~/git/nixpkgs
   Time (mean ± σ):      2.414 s ±  0.073 s    [User: 0.616 s, System: 21.215 s]
