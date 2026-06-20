@@ -87,7 +87,11 @@ impl ContextVec {
         if indices.is_empty() {
             return Ok(ContextVec::new());
         }
-        let Some(tree) = parser.parse(source_code, None) else {
+        // https://docs.rs/tree-sitter/latest/tree_sitter/struct.Parser.html#method.parse
+        let tree = parser
+            .parse(source_code, None)
+            .expect("tree-sitter language is not set");
+        if tree.root_node().has_error() {
             return Err(Error::Parse(entry.as_ref().to_path_buf()));
         }
 
@@ -223,6 +227,17 @@ mod tests {
         .unwrap();
         let text = node_text(source, node);
         assert_eq!(text, "buildInputs = [ fakePkg ];");
+    }
+
+    #[test]
+    fn skips_parse_error() {
+        let mut source =
+            String::from("{ stdenv, somePkg }: stdenv.mkDerivation { buildInputs = [ somePkg ]; ");
+        let result = ContextVec::try_from_source(&source, &mut parser(), "somePkg", "/fake/path");
+        assert!(result.is_err());
+        source += "}";
+        let result = ContextVec::try_from_source(source, &mut parser(), "somePkg", "/fake/path");
+        assert!(result.is_ok());
     }
 
     #[test]
