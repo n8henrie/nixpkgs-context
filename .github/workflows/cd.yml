@@ -7,14 +7,16 @@ on:
 
 jobs:
   publish:
-    name: Publishing for ${{ matrix.job.os  }}
-    runs-on: ${{ matrix.job.os }}
     strategy:
       matrix:
         job:
           - os: macos-latest
           - os: ubuntu-latest
           - os: ubuntu-24.04-arm
+    name: Publishing for ${{ matrix.job.os  }}
+    runs-on: ${{ matrix.job.os }}
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
