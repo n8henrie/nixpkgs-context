@@ -16,14 +16,10 @@ fn main() -> ExitCode {
 
     let mut stdout = std::io::stdout().lock();
     match write!(stdout, "{report}") {
-        Ok(()) => {
+        Err(err) if err.kind() != std::io::ErrorKind::BrokenPipe => ExitCode::FAILURE,
+        _ => {
             drop(stdout);
             ExitCode::SUCCESS
         }
-        Err(err) if err.kind() == std::io::ErrorKind::BrokenPipe => {
-            drop(stdout);
-            ExitCode::SUCCESS
-        }
-        _ => ExitCode::FAILURE,
     }
 }
