@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 use std::fmt;
+use std::io::Write;
 use std::sync::mpsc::{Sender, channel};
 use std::{
     collections::HashMap,
@@ -129,7 +130,17 @@ pub fn run() -> Result<Report> {
     while let Ok(entry) = rx.recv() {
         let entry = entry?;
         let source_code = fs::read_to_string(&entry)?;
-        let cv = ContextVec::try_from_source(source_code, &mut parser, &config.needle, entry)?;
+        let cv = match ContextVec::try_from_source(source_code, &mut parser, &config.needle, entry)
+        {
+            Err(err @ Error::Parse(_)) => {
+                let mut stderr = std::io::stderr().lock();
+                writeln!(stderr, "{err}")?;
+                drop(stderr);
+                continue;
+            }
+            Err(e) => return Err(e),
+            Ok(cv) => cv,
+        };
         for ctx in cv {
             map.entry(ctx.name.clone())
                 .or_insert(ContextVec::new())

@@ -9,6 +9,11 @@ fn garage() {
         .output()
         .unwrap();
     let stdout = str::from_utf8(&result.stdout).unwrap();
+    let stderr = str::from_utf8(&result.stderr).unwrap();
     assert!(result.status.success());
     assert_eq!(stdout.trim(), "nativeBuildInputs (1)");
+    assert_eq!(
+        stderr.trim(),
+        "parse error: tests/files/garage/default2.nix"
+    );
 }
