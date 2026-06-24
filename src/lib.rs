@@ -64,20 +64,26 @@ fn visit_dirs(dir: &Path, scope: &Scope, tx: Sender<io::Result<PathBuf>>) {
     }
 }
 
+#[derive(Debug)]
 pub struct Report {
     config: Cli,
     data: Vec<(String, ContextVec)>,
+    pub errors: Vec<Error>,
 }
 
 type CVMap = HashMap<String, ContextVec>;
 
-impl From<(CVMap, Cli)> for Report {
-    fn from(input: (CVMap, Cli)) -> Self {
-        let (map, config) = input;
+impl From<(CVMap, Cli, Vec<Error>)> for Report {
+    fn from(input: (CVMap, Cli, Vec<Error>)) -> Self {
+        let (map, config, errors) = input;
         let mut data: Vec<_> = map.into_iter().collect();
         // most occurrences first
         data.sort_by(|(_, a), (_, b)| b.cmp(a));
-        Self { config, data }
+        Self {
+            config,
+            data,
+            errors,
+        }
     }
 }
 
@@ -111,8 +117,8 @@ impl fmt::Display for Report {
 
 /// # Errors
 ///
-/// Returns errors if the underlying file or filesystem has errors, file is
-/// unreadable or unparseable,
+/// Skips files or filesystems with errors (with a warning)
+/// Returns an error if it can't write to stdout
 pub fn run() -> Result<Report> {
     let config = Cli::parse();
 
@@ -127,9 +133,22 @@ pub fn run() -> Result<Report> {
     parser.set_language(&tree_sitter_nix::LANGUAGE.into())?;
 
     let mut map = CVMap::new();
+    let mut errs = Vec::new();
     while let Ok(entry) = rx.recv() {
-        let entry = entry?;
-        let source_code = fs::read_to_string(&entry)?;
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) => {
+                errs.push(e.into());
+                continue;
+            }
+        };
+        let source_code = match fs::read_to_string(&entry) {
+            Ok(source) => source,
+            Err(e) => {
+                errs.push(e.into());
+                continue;
+            }
+        };
         let cv = match ContextVec::try_from_source(source_code, &mut parser, &config.needle, entry)
         {
             Err(err @ Error::Parse(_)) => {
@@ -148,7 +167,7 @@ pub fn run() -> Result<Report> {
         }
     }
 
-    Ok((map, config).into())
+    Ok((map, config, errs).into())
 }
 
 #[cfg(test)]

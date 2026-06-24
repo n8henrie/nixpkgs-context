@@ -1,4 +1,4 @@
-use std::{io, path::PathBuf};
+use std::{io, path::PathBuf, string::FromUtf8Error};
 
 use thiserror::Error;
 use tree_sitter::LanguageError;
@@ -9,6 +9,9 @@ pub(crate) type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     Io(#[from] io::Error),
+
+    #[error(transparent)]
+    Utf8(#[from] FromUtf8Error),
 
     #[error(transparent)]
     Language(#[from] LanguageError),

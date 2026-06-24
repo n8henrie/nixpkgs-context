@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{self, Write};
 
 use std::process::ExitCode;
 
@@ -15,6 +15,12 @@ fn main() -> ExitCode {
     };
 
     let mut stdout = std::io::stdout().lock();
+    if !report.errors.is_empty() {
+        let mut stderr = io::stderr().lock();
+        for err in &report.errors {
+            let _ = writeln!(stderr, "{err}");
+        }
+    }
     match write!(stdout, "{report}") {
         Err(err) if err.kind() != std::io::ErrorKind::BrokenPipe => ExitCode::FAILURE,
         _ => {
