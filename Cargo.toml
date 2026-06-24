@@ -1,6 +1,6 @@
 [package]
 name = "nixpkgs-context"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "Find nix code examples in context for a given string"
 license = "MIT"
