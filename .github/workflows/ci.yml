@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: |
-          cargo test --all-features --workspace -- --test-threads=1
+          cargo test --all-features --workspace
 
   fmt:
     runs-on: ubuntu-latest
